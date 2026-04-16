@@ -1,0 +1,9 @@
+shell: |
+  nix build .#cv \
+    --print-build-logs \
+    --no-accept-flake-config \
+    --option allow-import-from-derivation false
+  sha256sum result/cv.pdf
+  mkdir -p /var/lib/radicle-ci/cv/current
+  rsync -a result/cv.pdf /var/lib/radicle-ci/cv/current/cv.pdf
+  echo "deployed $(git rev-parse HEAD)"

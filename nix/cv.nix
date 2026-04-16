@@ -1,34 +1,33 @@
 { inputs, ... }:
 {
   perSystem =
-    { pkgs, self', ... }:
+    { pkgs, ... }:
     let
       inherit (inputs.gitignore.lib) gitignoreSource;
     in
     {
-      packages = {
-        cv = pkgs.stdenvNoCC.mkDerivation {
-          pname = "cv";
-          version =
-            let
-              d = inputs.self.lastModifiedDate;
-            in
-            "${builtins.substring 0 4 d}-${builtins.substring 4 2 d}-${builtins.substring 6 2 d}";
-          src = gitignoreSource ../typst;
+      packages.cv = pkgs.stdenvNoCC.mkDerivation {
+        pname = "cv";
+        version =
+          let
+            d = inputs.self.lastModifiedDate;
+          in
+          "${builtins.substring 0 4 d}-${builtins.substring 4 2 d}-${builtins.substring 6 2 d}";
+        src = gitignoreSource ../typst;
 
-          nativeBuildInputs = [ pkgs.typst ];
+        nativeBuildInputs = [ pkgs.typst ];
 
-          buildPhase = ''
-            typst compile main.typ cv.pdf
-          '';
+        # let make build output deterministic
+        env.SOURCE_DATE_EPOCH = toString inputs.self.lastModified;
 
-          installPhase = ''
-            mkdir -p $out
-            cp cv.pdf $out/
-          '';
-        };
+        buildPhase = ''
+          typst compile main.typ cv.pdf
+        '';
 
-        default = self'.packages.cv;
+        installPhase = ''
+          mkdir -p $out
+          cp cv.pdf $out/
+        '';
       };
 
       apps.watch = {
